@@ -3,70 +3,116 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact Form</title>
+    <link rel="stylesheet" type="text/css" href="./superheroPageStyles.css" />
+    <title>Superheroes</title>
   </head>
   <body>
-    <h1>Contact Form</h1>
-    <form action="/submit-form" method="POST">
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" required /><br /><br />
-      <label for="email">Email:</label>
-      <input type="email" id="email" name="email" required /><br /><br />
-      <label for="message">Message:</label><br />
-      <textarea
-        id="message"
-        name="message"
-        rows="4"
-        cols="50"
-        required
-      ></textarea
-      ><br /><br />
-      <input type="submit" value="Submit" />
-    </form>
-    <h1>User Management</h1>
-    <form id="updateForm">
-      <label for="currentName">Current name:</label>
-      <input type="text" id="currentName" required /><br /><br />
-      <label for="currentEmail">Current email:</label>
-      <input type="email" id="currentEmail" required /><br /><br />
-      <label for="newName">New name:</label>
-      <input type="text" id="newName" required /><br /><br />
-      <label for="newEmail">New email:</label>
-      <input type="email" id="newEmail" required /><br /><br />
-      <button type="submit">Update User</button>
-    </form>
-    <h1>Show Users</h1>
-    <table id="usersTable">
-      <thead>
-        <tr>
-          <th>User Name</th>
-          <th>User Email</th>
-        </tr>
-      </thead>
-      <tbody id="userTableBody">
-        <!-- data of users will be rendered here -->
-      </tbody>
-    </table>
+    <div class="parent">
+      <div class="section">
+        <h1>Create New Superhero</h1>
+        <form action="/submit-form" method="POST">
+          <label for="superName">Superhero Name:</label>
+          <input
+            type="text"
+            id="superName"
+            name="superName"
+            required
+          /><br /><br />
+          <label for="powers" id="blue">Powers/Abilities:</label><br />
+          <textarea
+            id="powers"
+            name="powers"
+            rows="4"
+            cols="50"
+            required
+          ></textarea
+          ><br /><br />
+          <input id="submit" type="submit" value="Create" />
+        </form>
+      </div>
+      <div class="section">
+        <h1>Update Superhero</h1>
+        <form id="updateForm">
+          <label for="currentSuperName">Current Superhero Name:</label>
+          <input type="text" id="currentSuperName" required /><br /><br />
+          <label for="newSuperName">New Superhero Name:</label>
+          <input type="text" id="newSuperName" required /><br /><br />
+          <label for="newPowers">New Powers:</label><br /><br />
+          <textarea
+            id="newPowers"
+            name="newPowers"
+            rows="4"
+            cols="50"
+            required
+          ></textarea
+          ><br /><br />
+          <button type="submit">Update Superhero</button>
+        </form>
+      </div>
+      <div class="section">
+        <h1>Delete Superhero</h1>
+        <form id="delete-user">
+          <label for="delete-name">Superhero Name:</label>
+          <input type="text" id="delete-name" /><br /><br />
+          <button type="submit">Delete Superhero</button>
+        </form>
+      </div>
+      <div class="section">
+        <h1>Superheroes</h1>
+        <div id="table">
+          <div>
+            <table id="usersTable">
+              <thead>
+                <tr>
+                  <th id="left-head">Superhero Name</th>
+                  <th id="right-head">Powers</th>
+                </tr>
+              </thead>
+              <tbody id="userTableBody">
+                <!-- data of users will be rendered here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
     <script>
+      document
+        .getElementById("delete-user")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const name = document.getElementById("delete-name").value;
+          try {
+            const response = await fetch(`/user/${name}`, {
+              method: "DELETE",
+            });
+            if (!response.ok) {
+              throw new Error("Error with network");
+            }
+            const data = await response.text();
+            console.log(data);
+            renderUsers();
+          } catch (error) {
+            console.error("something went wrong" + error.message);
+          }
+        });
+
       document
         .getElementById("updateForm")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-          const currentName = document.getElementById("currentName").value;
-          const currentEmail = document.getElementById("currentEmail").value;
-          const newName = document.getElementById("newName").value;
-          const newEmail = document.getElementById("newEmail").value;
+          const currentSuperName =
+            document.getElementById("currentSuperName").value;
+          const newSuperName = document.getElementById("newSuperName").value;
+          const newPowers = document.getElementById("newPowers").value;
           try {
-            const response = await fetch(
-              `/update-user/${currentName}/${currentEmail}`,
-              {
-                method: "PUT",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ newName, newEmail }),
-              }
-            );
+            const response = await fetch(`/update-user/${currentSuperName}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ newSuperName, newPowers }),
+            });
             const data = await response.json();
             console.log(data);
             renderUsers();
@@ -100,7 +146,7 @@
           const users = await fetchUsers();
           if (Array.isArray(users) && users.length > 0) {
             users.forEach((user) => {
-              const row = `<tr><td>${user.name}</td><td>${user.email}</td></tr>`;
+              const row = `<tr><td>${user.superName}</td><td>${user.powers}</td></tr>`;
               tableBody.innerHTML += row;
             });
           }

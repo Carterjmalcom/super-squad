@@ -46,7 +46,7 @@ app.get('/form', (req, res) => {
 // Form submission route
 app.post('/submit-form', async (req, res) => {
     try {
-        const { name, email, message } = req.body;
+        const { superName, powers } = req.body;
 
         // Read existing users from file
         let users = [];
@@ -60,13 +60,13 @@ app.post('/submit-form', async (req, res) => {
         }
 
         // Find or create user
-        let user = users.find(u => u.name === name && u.email === email);
-        if (user) {
-            user.messages.push(message);
-        } else {
-            user = { name, email, messages: [message] };
-            users.push(user);
-        }
+        let user = users.find(u => u.superName === superName);
+        // if (user) {
+        //     user.messages.push(message);
+        // } else {
+        user = { superName, powers };
+        users.push(user);
+        // }
 
         // Save updated users
         await fs.writeFile(dataPath, JSON.stringify(users, null, 2));
@@ -78,29 +78,62 @@ app.post('/submit-form', async (req, res) => {
 });
 
 // Update user route (currently just logs and sends a response)
-app.put('/update-user/:currentName/:currentEmail', async (req, res) => {
+app.put('/update-user/:currentSuperName/', async (req, res) => {
     try {
-        const { currentName, currentEmail } = req.params;
-        const { newName, newEmail } = req.body;
-        console.log('Current user:', { currentName, currentEmail });
-        console.log('New user data:', { newName, newEmail });
+        const { currentSuperName } = req.params;
+        const { newSuperName, newPowers } = req.body;
+        console.log('Current user:', { currentSuperName });
+        console.log('New user data:', { newSuperName, newPowers });
         const data = await fs.readFile(dataPath, 'utf8');
         if (data) {
             let users = JSON.parse(data);
-            const userIndex = users.findIndex(user => user.name === currentName && user.email === currentEmail);
+            const userIndex = users.findIndex(user => user.superName === currentSuperName);
             console.log(userIndex);
             if (userIndex === -1) {
-                return res.status(404).json({ message: "User not found" })
+                console.log(newPowers)
+                return res.status(404).json({ message: "Superhero not found" })
             }
-            users[userIndex] = { ...users[userIndex], name: newName, email: newEmail };
+            users[userIndex] = { ...users[userIndex], superName: newSuperName, powers: newPowers };
             console.log(users);
             await fs.writeFile(dataPath, JSON.stringify(users, null, 2));
 
-            res.status(200).json({ message: `You sent ${newName} and ${newEmail}` });
+            res.status(200).json({ message: `You sent ${newSuperName} and ${newPowers}` });
         }
     } catch (error) {
         console.error('Error updating user:', error);
         res.status(500).send('An error occurred while updating the user.');
+    }
+});
+
+app.delete('/user/:name', async (req, res) => {
+    try {
+        const { name } = req.params
+        // initalize an empty array of 'users'
+        let users = [];
+        // try to read the users.json file and cache as data
+        try {
+            const data = await fs.readFile(dataPath, 'utf8');
+            users = JSON.parse(data);
+        } catch (error) {
+            return res.status(404).send('User data not found')
+        }
+        // cache the userIndex based on a matching name and email
+        const userIndex = users.findIndex(user => user.superName === name);
+        console.log(userIndex);
+        if (userIndex === -1) {
+            return res.status(404).send('User not found');
+        }
+        // splice the users array with the intended delete name and email
+        users.splice(userIndex, 1);
+        try {
+            await fs.writeFile(dataPath, JSON.stringify(users, null, 2));
+        } catch (error) {
+            console.error("Failed to write to database")
+        }
+        // send a success deleted message
+        res.send('User deleted successfully');
+    } catch (error) {
+        res.status(500).send('There was an error deleting user');
     }
 });
 

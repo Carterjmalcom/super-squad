@@ -1,9 +1,6 @@
 [
   {
-    "name": "a",
-    "email": "a@a.com",
-    "messages": [
-      "a"
-    ]
+    "superName": "Carter",
+    "powers": "Flight"
   }
 ]
